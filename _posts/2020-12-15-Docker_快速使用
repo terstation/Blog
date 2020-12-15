@@ -1,0 +1,136 @@
+# Docker 使用方法
+
+
+
+没什么卵用的前置知识：
+
+- Docker 使用客户端-服务器 (C/S) 架构模式。Docker 客户端会与 Docker 守护进程进行通信。
+- Docker 守护进程会处理复杂繁重的任务，例如建立、运行、发布你的 Docker 容器。
+- Docker 客户端和守护进程可以运行在同一个系统上，当然你也可以使用 Docker 客户端去连接一个远程的 Docker 守护进程。
+- Docker 客户端和守护进程之间通过 socket 或者 RESTful API 进行通信。
+
+可选的操作：
+
+```shell
+添加 docker 权限，docker 安装好以后一般都会自动创建 docker 用户组，不用再创建：
+sudo usermod -a -G docker shiwai
+重启服务以应用，正在 ssh 的话也要需要重新登录：
+/etc/init.d/docker restart
+```
+
+
+
+## 更换国内源
+
+- 配置路径
+
+  ```
+  /etc/docker/daemon.json
+  ```
+
+- 请在该配置文件中加入（没有该文件的话，请先建一个）：
+
+  ```json
+  {
+    "registry-mirrors": ["https://docker.mirrors.ustc.edu.cn"]
+  }
+  ```
+
+
+
+## 镜像
+
+- 搜索镜像
+
+  ```
+  # docker search image
+  ```
+
+- 下载镜像
+
+  ```
+  # docker pull learn/tutorial
+  
+  没有斜杠前缀的是官方镜像
+  ```
+
+- 删除
+
+  ```
+  # docker rmi [image_name_or_id]
+  ```
+
+  
+
+## 容器
+
+注意：Ctrl + c 会关闭容器，使用 Ctrl + p 离开容器
+
+- 查询
+
+  ```zsh
+  查看所有正在运行的容器
+  # docker ps
+  运行过哪些容器
+  # docker ps -a
+  查看容器详细信息
+  # docker inspect efe
+  ```
+
+- 运行
+
+  **docker run ：**根据镜像创建一个容器并运行一个命令，操作的对象是 **镜像**
+
+  **docker exec ：**在运行的容器中执行命令，操作的对象是 **容器**
+
+  ```shell
+  docker run命令有两个参数，一个是镜像名，一个是要在镜像中运行的命令。
+  # docker run learn/tutorial echo "hello word"
+  
+  容器无法响应交互，下载时必须加上 -y 选项
+  # docker run learn/tutorial apt-get install -y ping
+  
+  -i (标准输入输出） -t（建立终端） /bin/bash 是运行的命令
+  # docker run -it ubuntu:14.04 /bin/bash
+  
+  -d 选项在后台运行 -P 网络端口随机映射到宿主机
+  # docker run -d -P training/webapp python app.py
+  
+  -p : 是容器内部端口绑定到指定的主机端口 -v 主机的目录 /data 映射到容器的 /data
+  # docker run -p 80:80 -v /data:/data -d nginx:latest
+  
+  # docker exec -it 775c7c9ee1e1 /bin/bash
+  ```
+
+- 网络
+
+  ```
+  主机模式在创建容器时通过 --net host 指定
+  默认是bridge模式网络 使用–net =bridge指定，默认网络驱动程序。当你的应用程序在需要通信的独立容器中运行时，通常会使用桥接网络。
+  
+  host模式网络，对于独立容器，删除容器和Docker主机之间的网络隔离，并直接使用主机的网络
+  ```
+
+- 保存容器为镜像
+
+  ```shell
+  数字是容器 id 的前三位，之后是保存的镜像名（自定义，但一般斜杠前更换为自己的用户名）
+  # docker commit 698 IamContiner/name
+  
+  -m 镜像描述信息 -a 用户信息
+  # docker commit -m "Added nginx from ubuntu14.04" -a "saymagic" 79c761f627f3 saymagic/ubuntu-nginx:v1
+  ```
+
+- 删除停止运行的容器
+
+  ```
+  docker rm 9d59e2278553
+  ```
+
+
+
+## 参考
+
+- Docker Daemon configuration file 文档： https://docs.docker.com/engine/reference/commandline/dockerd/#/daemon-configuration-file
+
+- Docker for Windows 文档: https://docs.docker.com/docker-for-windows/#/docker-daemon
